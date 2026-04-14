@@ -109,3 +109,36 @@ else:
     torch.save(model.state_dict(), "bert_imdb_checkpoint.pth")
 # Evaluate the resulting model
 evaluate()
+
+# Test the model on input text
+
+def predict_review(text):
+    model.eval()
+
+    enc = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        padding="max_length",
+        max_length=MAX_SEQ_LENGTH,
+    )
+    enc = {k: v.to(device) for k, v in enc.items()}
+
+    with torch.no_grad():
+        out = model(**enc)
+        probs = torch.softmax(out.logits, dim=1).squeeze(0)
+        pred_id = torch.argmax(probs).item()
+
+    return {
+        "label": pred_id,
+        "confidence": float(probs[pred_id].item()),
+        "prob_negative": float(probs[0].item()),
+        "prob_positive": float(probs[1].item()),
+    }
+
+while True:
+    txt = input("Enter a movie review (or 'quit'): ").strip()
+    if txt.lower() == "quit":
+        break
+    result = predict_review(txt)
+    print(result)
