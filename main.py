@@ -9,14 +9,19 @@ def setup_wandb():
     return wandb.init(
         entity="ERNIE-AML-2026",
         project="aml-miniproject-ernie",
-        # ...
+        # This config was provided as an example on wandb.ai
+        # config={
+        #     "learning_rate": 0.02,
+        #     "architecture": "CNN",
+        #     "dataset": "CIFAR-100",
+        #     "epochs": 10,
+        # },
     )
 
 wandb_run = setup_wandb()
 # Data Retrieval
 data = load_dataset("stanfordnlp/imdb")
 train_data, test_data = data["train"], data["test"]
-
 # Create a validation set from the training data
 split_idx = int(0.9 * len(train_data))
 val_data = train_data.select(range(split_idx, len(train_data)))

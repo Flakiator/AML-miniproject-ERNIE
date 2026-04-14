@@ -1,0 +1,34 @@
+pip==24.1.2
+numpy==1.26.4
+scipy>=1.16.1
+six>=1.17.0
+
+ipython==7.34.0
+jupyter>=1.0.0
+pandas==2.2.2
+matplotlib==3.10
+matplotlib_inline==0.2.1
+seaborn==0.13.2
+scikit-learn==1.6.1
+
+# This tells pip where to find the CUDA versions
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.2.2
+torchvision==0.17.2
+torchaudio==2.2.2
+
+tensorflow==2.16.1
+tf-keras==2.16.0
+tensorflow-datasets==4.9.4
+
+gdown==5.2.0
+nbconvert==7.16.6
+imageio>=2.37.2
+jax==0.4.28
+jaxlib==0.4.28
+optax==0.2.3
+pillow==11.3.0
+plotly==5.24.1
+requests==2.32.4
+tqdm==4.67.1
+wandb==0.23.1
