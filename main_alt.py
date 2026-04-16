@@ -16,7 +16,7 @@ epochs = 3
 
 # Configurations for experiment tracking
 record_stats = False  # Set to True to enable Weights & Biases logging
-model_name = "boltuix/bert-lite"
+model_name = "boltuix/bert-lite" 
 data_set_name = "stanfordnlp/imdb"
 wandb_run_name = f"bert-lite-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
 wandb_project_name = "aml-miniproject-ernie"
@@ -30,7 +30,7 @@ val_data = train_data.select(range(split_idx, len(train_data)))
 train_data = train_data.select(range(split_idx))
 
 # Initialize the tokenizer
-tokenizer = BertTokenizer.from_pretrained("boltuix/bert-lite")
+tokenizer = BertTokenizer.from_pretrained(model_name)
 
 def tokenize(example):
     return tokenizer(example["text"], padding="max_length", truncation=True, max_length=MAX_SEQ_LENGTH)
@@ -53,7 +53,7 @@ val_loader = DataLoader(val_data, batch_size=BATCH_SIZE)
 test_loader = DataLoader(test_data, batch_size=BATCH_SIZE)
 
 # Model Initialization
-model = BertForSequenceClassification.from_pretrained("boltuix/bert-lite", num_labels=2)
+model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
 
 # Training Loop
 # Select one runtime device and keep model/inputs aligned.
@@ -85,14 +85,13 @@ if record_stats:
     )
 
 training_args = TrainingArguments(
-    output_dir="./results",
     num_train_epochs=epochs,
     per_device_train_batch_size=BATCH_SIZE,
     per_device_eval_batch_size=BATCH_SIZE,
     eval_strategy="epoch",
     save_strategy="epoch",
+    weight_decay=0.01,
     learning_rate=LEARNING_RATE,
-    logging_dir="./logs",
     logging_steps=10,
     report_to="wandb", 
     run_name=wandb_run_name if record_stats else None,
@@ -126,6 +125,7 @@ print("Evaluation results:", evaluation)
 if record_stats:
     wandb.log({f"final/{k}": v for k, v in evaluation.items() if isinstance(v, Number)})
     wandb.finish()
+
 
 # Test the model on input text
 def predict_review(text):
