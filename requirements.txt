@@ -1,10 +1,15 @@
 # python-version: 3.12
-torch
-transformers
+# Core ML Frameworks
+torch>=2.4.0
+transformers>=4.40.0
 datasets
+
+# Experiment Tracking & Utilities
 wandb
-seaborn
-datasets
+tqdm
 numpy
 pandas
+
+# Visualization
 matplotlib
+seaborn
