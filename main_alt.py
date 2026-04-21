@@ -49,11 +49,6 @@ train_data.set_format(type="torch", columns=["input_ids", "attention_mask", "lab
 test_data.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
 val_data.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
 
-# Create DataLoaders
-train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
-val_loader = DataLoader(val_data, batch_size=BATCH_SIZE)
-test_loader = DataLoader(test_data, batch_size=BATCH_SIZE)
-
 # Model Initialization
 model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
 
