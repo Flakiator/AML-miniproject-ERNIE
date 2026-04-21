@@ -7,6 +7,8 @@ import torch
 from torch.optim import AdamW
 import wandb
 from numbers import Number
+import numpy as np
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 # Hyperparameters
 BATCH_SIZE = 32
@@ -16,7 +18,7 @@ epochs = 3
 
 # Configurations for experiment tracking
 record_stats = False  # Set to True to enable Weights & Biases logging
-model_name = "boltuix/bert-lite" 
+model_name = "distilbert/distilbert-base-uncased" 
 data_set_name = "stanfordnlp/imdb"
 wandb_run_name = f"bert-lite-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
 wandb_project_name = "aml-miniproject-ernie"
@@ -84,6 +86,21 @@ if record_stats:
         reinit=True,
     )
 
+# Define a compute_metrics function for the Trainer to use during evaluation
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    preds = np.argmax(logits, axis=1)
+
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
+    acc = accuracy_score(labels, preds)
+    return {
+        "accuracy": acc,
+        "f1": f1,
+        "precision": precision,
+        "recall": recall,
+    }
+
+# Set up training arguments for the Hugging Face Trainer
 training_args = TrainingArguments(
     num_train_epochs=epochs,
     per_device_train_batch_size=BATCH_SIZE,
@@ -104,6 +121,7 @@ trainer = Trainer(
     args=training_args,
     train_dataset=train_data,
     eval_dataset=val_data,
+    compute_metrics=compute_metrics,
 )
 
 # Run training and evaluation if no checkpoint exists
