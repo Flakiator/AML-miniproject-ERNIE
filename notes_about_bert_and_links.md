@@ -66,3 +66,6 @@ Benefits of Decoder-Only (The "Creator")
 Zero-Shot Learning: These models are incredibly good at following instructions they’ve never seen before (e.g., "Write a poem about a toaster in the style of Shakespeare").
 
 Open-Ended Generation: They can keep writing for pages while maintaining a consistent "train of thought." Encoders can't really "write" original content; they can only label or transform what's already there.
+
+### Notes and questions during training of the model
+#### Padding for tokenization. If I use max_length padding for every token, then short reviews get extra tokens until they reach max_length. Long reviews get cut off. Downside is speed.
