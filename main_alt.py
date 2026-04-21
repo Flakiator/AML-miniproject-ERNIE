@@ -62,8 +62,6 @@ else:
     device = torch.device("cpu")
 model.to(device)
 
-optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
-
 # Initialize Weights & Biases for experiment tracking
 if record_stats:
     wandb.init(
@@ -104,7 +102,8 @@ training_args = TrainingArguments(
     save_strategy="epoch",
     weight_decay=0.01,
     learning_rate=LEARNING_RATE,
-    logging_steps=10,
+    logging_steps=50,
+    logging_strategy="steps",
     report_to="wandb", 
     run_name=wandb_run_name if record_stats else None,
     fp16=device.type == "cuda", # Use mixed precision only on CUDA
@@ -134,11 +133,6 @@ model.to(device) # Move model to the device
 evaluation = trainer.evaluate()
 
 print("Evaluation results:", evaluation)
-
-if record_stats:
-    wandb.log({f"final/{k}": v for k, v in evaluation.items() if isinstance(v, Number)})
-    wandb.finish()
-
 
 # Test the model on input text
 def predict_review(text):
