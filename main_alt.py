@@ -8,7 +8,7 @@ from torch.optim import AdamW
 import wandb
 from numbers import Number
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, matthews_corrcoef
 
 # Hyperparameters
 BATCH_SIZE = 32
@@ -17,7 +17,7 @@ MAX_SEQ_LENGTH = 256
 epochs = 3
 
 # Configurations for experiment tracking
-record_stats = False  # Set to True to enable Weights & Biases logging
+record_stats = True  # Set to True to enable Weights & Biases logging
 model_name = "distilbert/distilbert-base-uncased" 
 data_set_name = "stanfordnlp/imdb"
 wandb_run_name = f"bert-lite-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
@@ -26,6 +26,9 @@ wandb_project_name = "aml-miniproject-ernie"
 # Data Retrieval
 data = load_dataset("stanfordnlp/imdb")
 train_data, test_data = data["train"], data["test"]
+
+
+
 # Create a validation set from the training data
 split_idx = int(0.9 * len(train_data))
 val_data = train_data.select(range(split_idx, len(train_data)))
@@ -86,11 +89,13 @@ def compute_metrics(eval_pred):
 
     precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
     acc = accuracy_score(labels, preds)
+    mcc = matthews_corrcoef(labels, preds)
     return {
         "accuracy": acc,
         "f1": f1,
         "precision": precision,
         "recall": recall,
+        "mcc": mcc,
     }
 
 # Set up training arguments for the Hugging Face Trainer
@@ -98,18 +103,21 @@ training_args = TrainingArguments(
     num_train_epochs=epochs,
     per_device_train_batch_size=BATCH_SIZE,
     per_device_eval_batch_size=BATCH_SIZE,
-    eval_strategy="epoch",
-    save_strategy="epoch",
-    weight_decay=0.01,
+    eval_strategy="epoch",                          # Evaluate the model at the end of each epoch
+    save_strategy="epoch",                          # Save the model at the end of each epoch
+    weight_decay=0.01,                              # Regularization to prevent overfitting by adding a penalty to the loss function based on the magnitude of the model's weights.
     learning_rate=LEARNING_RATE,
     logging_steps=50,
-    logging_strategy="steps",
-    report_to="wandb", 
+    logging_strategy="steps",                       # Log training metrics every 50 steps
+    report_to="wandb" if record_stats else "none",  # Log to Weights & Biases if enabled
     run_name=wandb_run_name if record_stats else None,
-    fp16=device.type == "cuda", # Use mixed precision only on CUDA
+    fp16=device.type == "cuda",                     # Use mixed precision only on CUDA
     use_cpu=device.type == "cpu",
+    load_best_model_at_end=True,                    # Load the best model at the end of training based on evaluation metrics
+    metric_for_best_model="f1",                     # Use F1 score to determine the best model
 )
 
+# Sets optimizer to AdamW by default
 trainer = Trainer(
     model=model,
     args=training_args,
