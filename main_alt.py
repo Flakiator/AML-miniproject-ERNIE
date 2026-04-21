@@ -27,7 +27,8 @@ wandb_project_name = "aml-miniproject-ernie"
 data = load_dataset("stanfordnlp/imdb")
 train_data, test_data = data["train"], data["test"]
 
-
+# Shuffle the training data to ensure validation set isn't biased of order
+train_data = train_data.shuffle(seed=42)
 
 # Create a validation set from the training data
 split_idx = int(0.9 * len(train_data))
