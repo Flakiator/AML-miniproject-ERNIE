@@ -2,11 +2,8 @@ import os
 
 from datasets import load_dataset
 from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
-from torch.utils.data import DataLoader
+from transformers.trainer_utils import get_last_checkpoint
 import torch
-from torch.optim import AdamW
-import wandb
-from numbers import Number
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, matthews_corrcoef
 
@@ -89,15 +86,15 @@ training_args = TrainingArguments(
     per_device_eval_batch_size=BATCH_SIZE,
     eval_strategy="epoch",                               # Evaluate the model at the end of each epoch
     save_strategy="epoch",                               # Save the model at the end of each epoch
+    save_total_limit=2,                                  # Only keep the 2 most recent checkpoints to save disk space
     weight_decay=0.01,                                   # Regularization to prevent overfitting by adding a penalty to the loss function based on the magnitude of the model's weights.
     learning_rate=LEARNING_RATE,
     logging_steps=50,
     logging_strategy="steps",                            # Log training metrics every 50 steps
-    report_to=["wandb"] if record_stats else ["none"],   # Log to Weights & Biases if enabled
+    report_to=["wandb"] if record_stats else "none",     # Log to Weights & Biases if enabled
     output_dir="./results",                              # Directory to save model checkpoints and logs
     run_name=wandb_run_name if record_stats else None,
-    fp16=device.type == "cuda",                          # Use mixed precision only on CUDA
-    use_cpu=device.type == "cpu",
+    fp16=device.type == "cuda",                          # Use mixed precision only on CUDA (if gpu is available)
     load_best_model_at_end=True,                         # Load the best model at the end of training based on evaluation metrics
     metric_for_best_model="f1",                          # Use F1 score to determine the best model
 )
@@ -112,18 +109,11 @@ trainer = Trainer(
 )
 
 # Run training and evaluation if no checkpoint exists
-if os.path.exists("bert_imdb_checkpoint.pth"):
-    state_dict = torch.load("bert_imdb_checkpoint.pth", map_location="cpu")
-    model.load_state_dict(state_dict)
-else:
-    trainer.train()
-    # make checkpoint
-    torch.save(model.state_dict(), "bert_imdb_checkpoint.pth")
+last_checkpoint = get_last_checkpoint("./results")  # from transformers.trainer_utils
+trainer.train(resume_from_checkpoint=last_checkpoint)
     
-model.to(device) # Move model to the device
-
 # Evaluate the resulting model
-evaluation = trainer.evaluate()
+evaluation = trainer.evaluate(eval_dataset=test_data)
 
 print("Evaluation results:", evaluation)
 
