@@ -18,9 +18,9 @@ epochs = 3
 
 # Configurations for experiment tracking
 record_stats = True  # Set to True to enable Weights & Biases logging
-model_name = "distilbert/distilbert-base-uncased" 
+model_name = "google-bert/bert-base-uncased" 
 data_set_name = "stanfordnlp/imdb"
-wandb_run_name = f"bert-lite-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
+wandb_run_name = f"bert-base-uncased-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
 wandb_project_name = "aml-miniproject-ernie"
 
 # Data Retrieval
@@ -66,23 +66,6 @@ else:
     device = torch.device("cpu")
 model.to(device)
 
-# Initialize Weights & Biases for experiment tracking
-if record_stats:
-    wandb.init(
-        project=wandb_project_name,
-        entity="ERNIE-AML-2026",
-        name=wandb_run_name,
-        config={
-            "model_name": model_name,
-            "dataset": data_set_name,
-            "batch_size": BATCH_SIZE,
-            "learning_rate": LEARNING_RATE,
-            "max_seq_length": MAX_SEQ_LENGTH,
-            "epochs": epochs,
-        },
-        reinit=True,
-    )
-
 # Define a compute_metrics function for the Trainer to use during evaluation
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
@@ -104,18 +87,19 @@ training_args = TrainingArguments(
     num_train_epochs=epochs,
     per_device_train_batch_size=BATCH_SIZE,
     per_device_eval_batch_size=BATCH_SIZE,
-    eval_strategy="epoch",                          # Evaluate the model at the end of each epoch
-    save_strategy="epoch",                          # Save the model at the end of each epoch
-    weight_decay=0.01,                              # Regularization to prevent overfitting by adding a penalty to the loss function based on the magnitude of the model's weights.
+    eval_strategy="epoch",                               # Evaluate the model at the end of each epoch
+    save_strategy="epoch",                               # Save the model at the end of each epoch
+    weight_decay=0.01,                                   # Regularization to prevent overfitting by adding a penalty to the loss function based on the magnitude of the model's weights.
     learning_rate=LEARNING_RATE,
     logging_steps=50,
-    logging_strategy="steps",                       # Log training metrics every 50 steps
-    report_to="wandb" if record_stats else "none",  # Log to Weights & Biases if enabled
+    logging_strategy="steps",                            # Log training metrics every 50 steps
+    report_to=["wandb"] if record_stats else ["none"],   # Log to Weights & Biases if enabled
+    output_dir="./results",                              # Directory to save model checkpoints and logs
     run_name=wandb_run_name if record_stats else None,
-    fp16=device.type == "cuda",                     # Use mixed precision only on CUDA
+    fp16=device.type == "cuda",                          # Use mixed precision only on CUDA
     use_cpu=device.type == "cpu",
-    load_best_model_at_end=True,                    # Load the best model at the end of training based on evaluation metrics
-    metric_for_best_model="f1",                     # Use F1 score to determine the best model
+    load_best_model_at_end=True,                         # Load the best model at the end of training based on evaluation metrics
+    metric_for_best_model="f1",                          # Use F1 score to determine the best model
 )
 
 # Sets optimizer to AdamW by default
