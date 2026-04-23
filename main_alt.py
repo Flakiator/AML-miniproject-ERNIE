@@ -1,7 +1,8 @@
 import os
 
+from safetensors.torch import load_file
 from datasets import load_dataset
-from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
+from transformers import BertTokenizer, BertModel, Trainer, TrainingArguments
 from transformers.trainer_utils import get_last_checkpoint
 import torch
 import numpy as np
@@ -14,7 +15,8 @@ MAX_SEQ_LENGTH = 256
 epochs = 3
 
 # Configurations for experiment tracking
-record_stats = True  # Set to True to enable Weights & Biases logging
+record_stats = False  # Set to True to enable Weights & Biases logging
+test_model = True    # Set to True to skip training and only run evaluation and prediction (make sure to have a checkpoint in ./results)
 model_name = "google-bert/bert-base-uncased" 
 data_set_name = "stanfordnlp/imdb"
 wandb_run_name = f"bert-base-uncased-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
@@ -50,8 +52,49 @@ train_data.set_format(type="torch", columns=["input_ids", "attention_mask", "lab
 test_data.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
 val_data.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
 
-# Model Initialization
-model = BertForSequenceClassification.from_pretrained(model_name, num_labels=2)
+# Model Definition
+class BertForSentiment(torch.nn.Module):
+    def __init__(self, model_name, num_labels=2):
+        super().__init__()
+        self.bert = BertModel.from_pretrained(model_name)
+        self.dropout = torch.nn.Dropout(0.1)
+        # ← OUTPUT HEAD: change num_labels to adapt to a different task
+        self.classifier = torch.nn.Linear(self.bert.config.hidden_size, num_labels)
+        self.num_labels = num_labels
+
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+        # ← INPUT HEAD: pass token_type_ids here for two-sequence tasks
+        outputs = self.bert(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids
+        )
+
+        # ← Take CLS token for sequence classification
+        cls_output = outputs.last_hidden_state[:, 0, :]
+        logits = self.classifier(self.dropout(cls_output))
+
+        # Compute loss if labels are provided (needed for Trainer compatibility)
+        loss = None
+        if labels is not None:
+            loss = torch.nn.CrossEntropyLoss()(logits, labels)
+
+        # Return in the format the Trainer expects
+        from transformers.modeling_outputs import SequenceClassifierOutput
+        return SequenceClassifierOutput(loss=loss, logits=logits)
+
+# Try to load old model
+last_checkpoint = get_last_checkpoint("./results")  # from transformers.trainer_utils
+
+# Initialize the model
+if test_model:
+    print(f"Loading model from checkpoint: {last_checkpoint}")
+    state_dict = load_file(os.path.join(last_checkpoint, "model.safetensors"))
+    model = BertForSentiment(model_name)
+    model.load_state_dict(state_dict)
+else:
+    print("No checkpoint found, initializing new model.")
+    model = BertForSentiment(model_name)
 
 # Training Loop
 # Select one runtime device and keep model/inputs aligned.
@@ -109,8 +152,8 @@ trainer = Trainer(
 )
 
 # Run training and evaluation if no checkpoint exists
-last_checkpoint = get_last_checkpoint("./results")  # from transformers.trainer_utils
-trainer.train(resume_from_checkpoint=last_checkpoint)
+if not test_model:
+    trainer.train()
     
 # Evaluate the resulting model
 evaluation = trainer.evaluate(eval_dataset=test_data)
