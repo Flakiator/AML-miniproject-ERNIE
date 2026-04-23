@@ -14,9 +14,9 @@ from sentiment_app.model import create_model
 
 @dataclass(frozen=True)
 class Settings:
-    batch_size: int = 16
+    batch_size: int = 128 #16
     learning_rate: float = 1e-5
-    max_seq_length: int = 64
+    max_seq_length: int = 264 #64
     epochs: int = 3
     record_stats: bool = True
     model_name: str = "bert-base-cased"
@@ -57,6 +57,8 @@ def compute_metrics(eval_pred):
 def load_and_prepare_datasets(settings):
     dataset = load_dataset(settings.dataset_name)
     train_data, test_data = dataset["train"], dataset["test"]
+
+    train_data = train_data.shuffle(seed=67)
 
     split_idx = int(0.9 * len(train_data))
     val_data = train_data.select(range(split_idx, len(train_data)))
@@ -109,9 +111,9 @@ def create_trainer(model, tokenizer, train_data, val_data, device, settings):
         per_device_eval_batch_size=settings.batch_size,
         eval_strategy="epoch",
         save_strategy="epoch",
-        weight_decay=0.01,
+        weight_decay=0.01, # L2 Regularization
         learning_rate=settings.learning_rate,
-        logging_steps=10,
+        logging_steps=50,
         report_to=["wandb"] if settings.record_stats else "none",
         run_name=settings.wandb_run_name if settings.record_stats else None,
         fp16=device.type == "cuda",

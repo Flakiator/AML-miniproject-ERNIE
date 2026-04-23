@@ -56,7 +56,7 @@ Decoders are Unidirectional (or "Causal"). They are restricted: they can only se
 The Goal: To predict the very next token in a sequence.
 
 Analogy: It’s like a person writing a story one word at a time. They know what they’ve written so far, but the "future" words haven't been created yet.
-
+<br>
 Benefits of Encoder-Only (The "Analyst")
 Better for Classification: Because it sees the whole sentence at once, it is much better at picking up subtle sentiment cues. In your sentiment analysis task, BERT will likely outperform a GPT-style model of the same size because it doesn't have "blind spots" regarding the end of the sentence.
 
@@ -69,3 +69,6 @@ Open-Ended Generation: They can keep writing for pages while maintaining a consi
 
 ### Notes and questions during training of the model
 #### Padding for tokenization. If I use max_length padding for every token, then short reviews get extra tokens until they reach max_length. Long reviews get cut off. Downside is speed.
+### Fine-Tuning BERT
+#### By wrapping BERT in this class, you aren't just training your little Linear layer. Because BERT is inside the class, when you run the Trainer, the "error" (loss) from your classifier travels backwards into BERT itself.
+#### This allows BERT to "tweak" its own internal weights to better understand movie-specific language (like realizing that "sick" in a movie review might actually be a positive thing).

@@ -11,21 +11,26 @@ class BERTForSentimentAnalysisCustom(nn.Module):
         self.num_classes = num_classes
         self.hidden_size = base_model.config.hidden_size
         self.dropout = nn.Dropout(0.1)
-        self.classifier = nn.Linear(self.hidden_size * 4, num_classes)
+        self.classifier = nn.Linear(self.hidden_size, num_classes)
 
     def forward(self, input_ids, attention_mask=None, token_type_ids=None, labels=None, **kwargs):
         outputs = self.bert(
             input_ids=input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
-            output_hidden_states=True,
+            output_hidden_states=False, #True
         )
 
-        last_four_layers = outputs.hidden_states[-4:]
-        cls_from_each = [layer[:, 0, :] for layer in last_four_layers]
-        combined_output = torch.cat(cls_from_each, dim=-1)
+        # last_four_layers = outputs.hidden_states[-4:]
+        # cls_from_each = [layer[:, 0, :] for layer in last_four_layers]
+        # combined_output = torch.cat(cls_from_each, dim=-1)
 
-        pooled_output = self.dropout(combined_output)
+        # pooled_output = self.dropout(combined_output)
+
+        last_hidden_state = outputs[0]
+        cls_token = last_hidden_state[:, 0, :]
+
+        pooled_output = self.dropout(cls_token)
         logits = self.classifier(pooled_output)
 
         loss = None
