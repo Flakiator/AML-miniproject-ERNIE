@@ -106,6 +106,7 @@ def initialize_wandb(settings):
 
 def create_trainer(model, tokenizer, train_data, val_data, device, settings):
     training_args = TrainingArguments(
+        warmup_ratio=0.5,
         num_train_epochs=settings.epochs,
         per_device_train_batch_size=settings.batch_size,
         per_device_eval_batch_size=settings.batch_size,
