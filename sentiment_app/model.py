@@ -13,6 +13,8 @@ class BERTForSentimentAnalysisCustom(nn.Module):
         self.dropout = nn.Dropout(0.1)
         self.classifier = nn.Linear(self.hidden_size, num_classes)
 
+        ### Try freezing of weights. Try to freeze all 12 then try to freeze first 8 haha
+
     def forward(self, input_ids, attention_mask=None, token_type_ids=None, labels=None, **kwargs):
         outputs = self.bert(
             input_ids=input_ids,
