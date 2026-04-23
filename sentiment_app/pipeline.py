@@ -14,9 +14,9 @@ from sentiment_app.model import create_model
 
 @dataclass(frozen=True)
 class Settings:
-    batch_size: int = 128 #16
+    batch_size: int = 256 #16
     learning_rate: float = 1e-5
-    max_seq_length: int = 264 #64
+    max_seq_length: int = 512 #64
     epochs: int = 3
     record_stats: bool = True
     model_name: str = "bert-base-cased"
