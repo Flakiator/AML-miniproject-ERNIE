@@ -14,16 +14,16 @@ from sentiment_app.model import create_model
 
 @dataclass(frozen=True)
 class Settings:
-    batch_size: int = 256 #16
+    batch_size: int = 128 #16
     learning_rate: float = 1e-5
-    max_seq_length: int = 512 #64
+    max_seq_length: int = 264 #64
     epochs: int = 3
     record_stats: bool = True
     model_name: str = "bert-base-cased"
     dataset_name: str = "stanfordnlp/imdb"
     wandb_project_name: str = "aml-miniproject-ernie"
     wandb_entity: str = "ERNIE-AML-2026"
-    checkpoint_path: str = "bert-base-cased_imdb_checkpoint_dynamic_padding_with_metrics.pth"
+    checkpoint_path: str = f"bert-base-cased_imdb_checkpoint_dynamic_padding_with_metrics-{max_seq_length}-{batch_size}.pth"
 
     @property
     def wandb_run_name(self):
