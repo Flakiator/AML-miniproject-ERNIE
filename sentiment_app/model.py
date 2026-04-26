@@ -48,6 +48,72 @@ class BERTForSentimentAnalysisCustom(nn.Module):
         )
 
 
+class GloveBaselineForSentimentAnalysisCustom(nn.Module):
+    def __init__(
+        self,
+        embedding_matrix,
+        num_classes,
+        padding_idx=0,
+        dropout=0.2,
+        freeze_embeddings=True,
+    ):
+        super().__init__()
+        embedding_matrix = torch.as_tensor(embedding_matrix, dtype=torch.float32)
+
+        self.num_classes = num_classes
+        self.hidden_size = embedding_matrix.shape[1]
+        self.padding_idx = padding_idx
+        self.embedding = nn.Embedding.from_pretrained(
+            embedding_matrix,
+            freeze=freeze_embeddings,
+            padding_idx=padding_idx,
+        )
+        self.dropout = nn.Dropout(dropout)
+        self.classifier = nn.Linear(self.hidden_size, num_classes)
+
+    def forward(self, input_ids, attention_mask=None, labels=None, **kwargs):
+        embedded_tokens = self.embedding(input_ids)
+
+        if attention_mask is None:
+            attention_mask = (input_ids != self.padding_idx).long()
+
+        mask = attention_mask.unsqueeze(-1).type_as(embedded_tokens)
+        masked_embeddings = embedded_tokens * mask
+
+        token_counts = mask.sum(dim=1).clamp(min=1.0)
+        pooled_output = masked_embeddings.sum(dim=1) / token_counts
+        pooled_output = self.dropout(pooled_output)
+        logits = self.classifier(pooled_output)
+
+        loss = None
+        if labels is not None:
+            loss_function = nn.CrossEntropyLoss()
+            loss = loss_function(logits.view(-1, self.num_classes), labels.view(-1))
+
+        return SequenceClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=(embedded_tokens,),
+            attentions=None,
+        )
+
+
 def create_model(model_name, num_classes):
     base_bert_model = AutoModel.from_pretrained(model_name)
     return BERTForSentimentAnalysisCustom(base_bert_model, num_classes=num_classes)
+
+
+def create_glove_baseline_model(
+    embedding_matrix,
+    num_classes,
+    padding_idx=0,
+    dropout=0.2,
+    freeze_embeddings=True,
+):
+    return GloveBaselineForSentimentAnalysisCustom(
+        embedding_matrix=embedding_matrix,
+        num_classes=num_classes,
+        padding_idx=padding_idx,
+        dropout=dropout,
+        freeze_embeddings=freeze_embeddings,
+    )
