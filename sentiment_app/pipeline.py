@@ -2,6 +2,7 @@ import os
 import re
 from collections import Counter
 from dataclasses import dataclass
+from html import unescape
 from numbers import Number
 from pathlib import Path
 
@@ -22,7 +23,7 @@ class Settings:
     max_seq_length: int = 264 #64
     epochs: int = 3
     record_stats: bool = True
-    model_type: str = "glove"
+    model_type: str = "bert"
     model_name: str = "bert-base-cased"
     dataset_name: str = "stanfordnlp/imdb"
     wandb_project_name: str = "aml-miniproject-ernie"
@@ -54,6 +55,7 @@ f1_metric = evaluate.load("f1")
 PAD_TOKEN = "[PAD]"
 UNK_TOKEN = "[UNK]"
 TOKEN_PATTERN = re.compile(r"\b\w+\b|[^\w\s]")
+HTML_TAG_PATTERN = re.compile(r"<[^>]+>")
 
 
 class SimpleWordTokenizer:
@@ -202,8 +204,15 @@ def load_glove_embedding_matrix(vocab, vectors_path):
     return embedding_matrix
 
 
+def strip_html_tags(text):
+    text = unescape(text)
+    text = HTML_TAG_PATTERN.sub(" ", text)
+    return " ".join(text.split())
+
+
 def load_and_prepare_bert_datasets(settings):
     dataset = load_dataset(settings.dataset_name)
+
     train_data, test_data = dataset["train"], dataset["test"]
 
     train_data = train_data.shuffle(seed=67)
@@ -215,7 +224,8 @@ def load_and_prepare_bert_datasets(settings):
     tokenizer = AutoTokenizer.from_pretrained(settings.model_name)
 
     def tokenize(batch):
-        return tokenizer(batch["text"], truncation=True, max_length=settings.max_seq_length)
+        cleaned_texts = [strip_html_tags(text) for text in batch["text"]]
+        return tokenizer(cleaned_texts, truncation=True, max_length=settings.max_seq_length)
 
     train_data = train_data.map(tokenize, batched=True)
     val_data = val_data.map(tokenize, batched=True)
