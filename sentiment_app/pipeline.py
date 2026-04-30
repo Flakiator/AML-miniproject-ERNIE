@@ -13,27 +13,28 @@ from datasets import load_dataset
 from transformers import AutoTokenizer, DataCollatorWithPadding, Trainer, TrainingArguments
 
 from sentiment_app.environment import check_torchvision_compatibility, get_device
-from sentiment_app.model import create_glove_baseline_model, create_model
+from sentiment_app.model import create_glove_baseline_model, create_glove_simple_model, create_model
 
 
 @dataclass(frozen=True)
 class Settings:
     batch_size: int = 128 #16
-    learning_rate: float = 1e-5
+    learning_rate: float = 0.05 #1e-5
     max_seq_length: int = 264 #64
-    epochs: int = 3
+    epochs: int = 15
     record_stats: bool = True
-    model_type: str = "bert"
+    model_type: str = "glove_simple"  # "bert" | "glove" | "glove_simple"
     model_name: str = "bert-base-cased"
     dataset_name: str = "stanfordnlp/imdb"
     wandb_project_name: str = "aml-miniproject-ernie"
     wandb_entity: str = "ERNIE-AML-2026"
     glove_vectors_path: str = (
-        "wiki_giga_2024_100_MFT20_vectors_seed_2024_alpha_0.75_eta_0.05.050_combined.txt"
+        "wiki_giga_2024_300_MFT20_vectors_seed_2024_alpha_0.75_eta_0.05_combined.txt"
     )
     glove_freeze_embeddings: bool = True
     glove_min_frequency: int = 2
     glove_vocab_size: int = 50000
+    glove_hidden_dim: int = 128
     checkpoint_path: str = (
         f"{model_type}_{model_name}_imdb_checkpoint_dynamic_padding_with_metrics-"
         f"{max_seq_length}-{batch_size}.pth"
@@ -65,8 +66,8 @@ class SimpleWordTokenizer:
         self.lowercase = lowercase
         self.pad_token = PAD_TOKEN
         self.unk_token = UNK_TOKEN
-        self.pad_token_id = vocab[self.pad_token]
-        self.unk_token_id = vocab[self.unk_token]
+        self.pad_token_id = vocab[PAD_TOKEN]
+        self.unk_token_id = vocab[UNK_TOKEN]
 
     def tokenize(self, text):
         if self.lowercase:
@@ -215,11 +216,12 @@ def load_and_prepare_bert_datasets(settings):
 
     train_data, test_data = dataset["train"], dataset["test"]
 
-    train_data = train_data.shuffle(seed=67)
+    train_data = train_data.shuffle()
 
     split_idx = int(0.9 * len(train_data))
-    val_data = train_data.select(range(split_idx, len(train_data)))
-    train_data = train_data.select(range(split_idx))
+    val_data = train_data.select(range(split_idx, len(train_data))).shuffle()
+    train_data = train_data.select(range(split_idx)).shuffle()
+    test_data = test_data.shuffle()
 
     tokenizer = AutoTokenizer.from_pretrained(settings.model_name)
 
@@ -270,6 +272,7 @@ def load_and_prepare_glove_datasets(settings):
         "num_classes": 2,
         "padding_idx": tokenizer.pad_token_id,
         "freeze_embeddings": settings.glove_freeze_embeddings,
+        "hidden_dim": settings.glove_hidden_dim,
     }
     return tokenizer, train_data, val_data, test_data, model_kwargs, glove_data_collator
 
@@ -294,8 +297,14 @@ def compute_metrics(eval_pred):
 def load_and_prepare_datasets(settings):
     if settings.model_type == "bert":
         return load_and_prepare_bert_datasets(settings)
-    if settings.model_type == "glove":
-        return load_and_prepare_glove_datasets(settings)
+    if settings.model_type in ("glove", "glove_simple"):
+        tokenizer, train_data, val_data, test_data, model_kwargs, collator = (
+            load_and_prepare_glove_datasets(settings)
+        )
+        # Simple mean-pooling model doesn't use hidden_dim
+        if settings.model_type == "glove_simple":
+            model_kwargs.pop("hidden_dim", None)
+        return tokenizer, train_data, val_data, test_data, model_kwargs, collator
     raise ValueError(f"Unsupported model_type: {settings.model_type}")
 
 
@@ -329,7 +338,7 @@ def create_trainer(model, tokenizer, train_data, val_data, device, settings, dat
         num_train_epochs=settings.epochs,
         per_device_train_batch_size=settings.batch_size,
         per_device_eval_batch_size=settings.batch_size,
-        eval_strategy="epoch",
+        # eval_strategy="epoch",
         save_strategy="epoch",
         weight_decay=0.01, # L2 Regularization
         learning_rate=settings.learning_rate,
@@ -338,6 +347,7 @@ def create_trainer(model, tokenizer, train_data, val_data, device, settings, dat
         run_name=settings.wandb_run_name if settings.record_stats else None,
         fp16=device.type == "cuda",
         use_cpu=device.type == "cpu",
+        output_dir="output_dir"
     )
     if data_collator is None:
         data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
@@ -412,6 +422,8 @@ def run():
         model = create_model(model_name=settings.model_name, num_classes=2)
     elif settings.model_type == "glove":
         model = create_glove_baseline_model(**model_kwargs)
+    elif settings.model_type == "glove_simple":
+        model = create_glove_simple_model(**model_kwargs)
     else:
         raise ValueError(f"Unsupported model_type: {settings.model_type}")
     device = get_device()
