@@ -40,6 +40,7 @@ tokenizer = BertTokenizer.from_pretrained(model_name)
 def tokenize(example):
     return tokenizer(example["text"], padding="max_length", truncation=True, max_length=MAX_SEQ_LENGTH)
 
+
 # Tokenize the datasets (this gives us input_ids and attention_mask)
 # input_ids: token IDs for the input text
 # attention_mask: indicates which tokens are padding (0) and which are not (1)
@@ -96,7 +97,7 @@ else:
     print("No checkpoint found, initializing new model.")
     model = BertForSentiment(model_name)
 
-# Training Loop
+
 # Select one runtime device and keep model/inputs aligned.
 if torch.cuda.is_available():
     device = torch.device("cuda") # NVIDIA GPU support
