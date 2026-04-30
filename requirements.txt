@@ -1,0 +1,21 @@
+# python-version: 3.12
+# Core ML Frameworks
+torch>=2.4,<3.0
+transformers>=4.40,<6.0
+accelerate>=1.1,<2.0
+datasets
+evaluate
+scikit-learn
+
+# Experiment Tracking & Utilities
+wandb
+tqdm
+numpy<2
+pandas
+
+# Visualization
+matplotlib
+seaborn
+
+# This is a text-only project, so torchvision is intentionally not listed.
+# If torchvision is present in the environment, it must match the installed torch build.
