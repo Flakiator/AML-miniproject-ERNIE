@@ -18,10 +18,9 @@ epochs = 10
 
 # Configurations for experiment tracking
 record_stats = False  # Set to True to enable Weights & Biases logging
-test_model = True    # Set to True to skip training and only run evaluation and prediction (make sure to have a checkpoint in ./results)
-model_name = "google-bert/bert-base-uncased" 
+test_model = True    # Set to True to skip training and only run evaluation and prediction (make sure to have a checkpoint in ./results) 
 data_set_name = "stanfordnlp/imdb"
-wandb_run_name = f"bert-base-uncased-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
+wandb_run_name = f"glove-imdb-bs{BATCH_SIZE}-lr{LEARNING_RATE}-ep{epochs}"
 wandb_project_name = "aml-miniproject-ernie"
 
 # Data Retrieval
