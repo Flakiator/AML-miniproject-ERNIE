@@ -41,16 +41,17 @@ train_data = train_data.select(range(split_idx))
 
 glove = vocab.GloVe(name="42B", dim=300)
 
-def get_glove_embedding(text):
+def get_glove_embedding(text, misses=0):
     tokens = text.lower().split()  # simple whitespace tokenization
-    vectors = [glove[token] for token in tokens if token in glove.stoi]
+    vectors = [glove[token] for token in tokens if token in glove.stoi else misses = misses +1]
     if not vectors:
         return torch.zeros(300)
-    return torch.stack(vectors).mean(dim=0)  # mean pooling → single 300-dim vector
+    return torch.stack(vectors).mean(dim=0), misses  # mean pooling → single 300-dim vector
 
 
 def embed_text(example):
-    embedding = get_glove_embedding(example["text"])
+    embedding, misses = get_glove_embedding(example["text"])
+    print(f"Missed {misses} tokens in review of length {len(example['text'].split())}")
     return {"embeddings": embedding.numpy()}  # .map() expects numpy, not tensors
 
 # Precompute embeddings for all splits
