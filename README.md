@@ -85,6 +85,9 @@ TODO (Anton)
 Discussion: summarise the most important results and lessons learned (what is good, what can be improved)
 
 ## How to run the models and other resources
+### BERT (bert.ipynb)
+TODO (Anton)
+
 ### GloVe + LSTM (glove.ipynb)
 The GloVe + LSTM `glove.ipynb` can be run in colab, where we recommend using T4 runtime. It scores a test accuracy of around 88%.
 
