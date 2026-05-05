@@ -43,10 +43,34 @@ TODO
 
 ### GloVe + LSTM
 We also implemented a GloVe model where we try to add some notion of bi-directional context encoding.
-It starts with an embedding layer, which matches word indexes in the 
-This is done via a bi-directional LSTM layer, which then concatenates the result of going each direction, before pooling it all.
-The idea here is:
-1. 
+It starts with an embedding layer, which matches word indexes in the input sequence with a its GloVe embedding equivalent.
+Thereafter, we have bi-directional LSTM layer, used to add some context encoding for each word both ways (each both ways are concatinated).
+The result of the bi-directional LSTM layer for each word is then pooled for the whole sentence in order to aggregate the context of all the words combined.
+The sentence context is then fed into a hidden layer (with ReLU activation) with the hope of encoding
+any hidden feature not captured by the previous layers.
+We then have a dropout layer as to prevent overfitting, before then having a sigmoid activation function in our last layer to end up with a 1/0 value
+representing positive/negative respectively.
+
+The overall idea here is:
+1. Use GloVe embeddings from words
+2. Encode sentence context for each word once per direction and concatinate the results
+3. Pool word context to get sentence context
+4. Hidden layer to capture any hidden feature missed by the bi-directional LSTM layer
+5. Dropout layer to prevent overfitting
+6. Output layer with sigmoid activation function
+
+#### Training mechanisms
+For training mechanisms, we first decided to freeze the GloVe embedding layer, since we felt like the dataset was not big enough to
+represent the wider data population, and thus it might turn innacurrate.
+
+We also used a dropout layer as to prevent overfitting. This works by occcasionally removing some of the encodings from the previous layers, which might otherwise get too much importance.
+
+Furthermore, we used learning rate decay in order to improve fine-tuning and not overshoot optimization.
+We also added early stopping, such that when multiple epochs without improvements is experience, the model reverts to the best weights before
+it started to do bad.
+
+The optimizer used was Adaptive Moment Estimation with a base LR of 0.001 (and used LR decay as mentioned above).
+The loss was calculated via binary cross-entropy, since we were working with binary output classes.
 
 ## Results
 ANTON
