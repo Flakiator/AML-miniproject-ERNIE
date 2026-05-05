@@ -100,28 +100,29 @@ The optimizer used was Adaptive Moment Estimation with a base LR of 0.001 (and u
 The loss was calculated via binary cross-entropy, since we were working with binary output classes.
 
 ## Results
-TODO (Anton)
-- key experiments and results
-- accuracy tables
-- error graphs (maybe from wandb?)
-
-Key experiments & results: present and explain results, e.g. in simple accuracy tables over error graphs up to visualisations of representations and/or edge cases – keep it crisp
 #### After training our models, we decided to check their accuracy and competency on a defined set of prompts. Starting at easy-to-classify review to more convoluted.
-##### BERT implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens).
-##### Simple GloVe did have a few correct predictions but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. So overall performance was pretty bad.
-##### Glove + LSTM performed much better than simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation. Even besting BERT in long review classification.
+##### **BERT** implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens).
+##### **Simple GloVe** did have a few correct predictions, but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. So overall performance was pretty bad.
+##### **Glove + LSTM** performed much better than Simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation. Even besting BERT in long review classification.
 
 ## Discussion
-TODO (Anton)
-
-Discussion: summarise the most important results and lessons learned (what is good, what can be improved)
+We learned that understanding the data and dataset is really important. This step is of utmost importance as it can hinder any further development. By thoroughly choosing and refining your data you will achieve much more accuracy of trained model and significantly reduce time trying to optimize it.
+Furthermore, we investigated evolution of NLP approaches and the motivation behind constant improvement by learning about shortcomings and negatives of different model architectures.
+Finally, we learned different methodologies and tactics for improving models and that it is possible to achieve high scores and performance using already pre-trained models.
 
 ## How to run the models and other resources
 ### BERT (bert.ipynb)
-TODO (Anton)
+The colab file (BERT.ipynb) is amazingly setup so it's easy to follow instructions and run the training model. 
+There are options to load old model, freeze weights and further customization as selecting custom hyperparameters and logging options.
+With frozen weights it trains very fast and achieves test accuracy of 76%.
 
 ### GloVe + LSTM (glove.ipynb)
 The GloVe + LSTM `glove.ipynb` can be run in colab, where we recommend using T4 runtime. It scores a test accuracy of around 88%.
+
+### Simple Glove (Simple_GloVe.ipynb / Simple_GloVe.py)
+.ipynb version can be run in colab like Glove + LSTM version.
+.py version can be run locally if your machine is faster than colab.
+We used the glove.6B.zip (300d) from: https://nlp.stanford.edu/projects/glove/
 
 The first cell should look as follows during first run, as to download the GloVe vectors (uncomment 2nd and 3rd lines):
 ```py
