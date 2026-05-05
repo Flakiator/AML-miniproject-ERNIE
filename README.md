@@ -28,10 +28,12 @@ Being mostly interested in the capturing of context, this is what we then decide
 
 ## Architecture
 ### BERT
-TODO
-- architecture
-- training mechanisms
-- brief justification (for non-standard things)
+We used google-bert/bert-base-uncased from HuggingFace, a 12-layer bidirectional transformer with 12 attention heads and a hidden size of 768, pretrained on masked language modelling and next sentence prediction. 
+
+We loaded the pretrained weights via BertModel rather than BertForSequenceClassification to expose the architecture explicitly and allow flexibility in swapping the output head for different tasks. The CLS token's final hidden state is passed through a dropout layer and a linear classification head to produce sentiment logits.
+
+For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight decay was applied for regularization. Metrics were logged per epoch to Weights & Biases, and the best checkpoint was selected based on validation F1 score.
+
 
 ### GloVe
 TODO
