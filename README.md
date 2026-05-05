@@ -35,10 +35,38 @@ We loaded the pretrained weights via BertModel rather than BertForSequenceClassi
 For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight decay was applied for regularization. Metrics were logged per epoch to Weights & Biases, and the best checkpoint was selected based on validation F1 score.
 
 ### GloVe
-TODO (Anton)
-- architecture
-- training mechanisms
-- brief justification (for non-standard things)
+GloVe is an unsupervised learning algorithm for obtaining vector representations for words. This is achieved by mapping words into a meaningful space where the distance between words is related to semantic similarity.
+GloVe is not a neural network in the traditional sense — it has no hidden layers, no activations. It's a shallow, direct embedding model.
+GloVe is essentially a log-bilinear model with a weighted least-squares objective. (Log-Bilinear means measuring of similarity between two vectors in the same space by taking a dot-product of vectors)
+The training objective of GloVe is to learn word vectors such that their dot product equals the logarithm of the words' probability of co-occurrence.
+
+#### The main drawback of GloVe is that it lacks contextual embeddings. 
+#### Each word gets one single fixed vector, regardless of context. GloVe cannot disambiguate meaning based on surrounding context. (bank of a river is the same as bank where people store money)
+
+#### Initial training process of GloVe model vectors
+1. Build the Co-occurrence Matrix. It captures global statistics of the entire corpus.
+2. Initialize Embedding.
+   1. Randomly initialize all learnable parameters (main word embeddings, context word embeddings, word biases, context biases)
+3. Define the Weighting Function.
+4. The Training Loop. Compute predictions, error against the log target, update parameters using gradient descent. (GloVe uses AdaGrad optimizer).
+5. Repeat over Epochs
+6. Combine the Two Embeddings.
+After training, the final word vector is calculated.
+
+#### GloVe + small MLP classifier 
+In our project we used pre-trained word vectors trained with GloVe (6B tokens, 400K vocab, 300d).
+
+Our training process can be separated into two distinct stages:
+1. Stage 1 is creation of **embeddings** of IMDB dataset. 
+   1. We tokenize raw text.
+   2. Mean-pool using GloVe vectors that produce 300d vector for a review.
+2. Stage 2 is our MLP Classifier.
+   1. We pass 300d vector through first Linear layer and reduce dimensions to 256.
+   2. Then we use RELU activation function.
+   3. Apply dropout regularization.
+   4. Finally, a final Linear layer to get last 2 dimensions.
+   5. We get two raw logits and apply CrossEnthropy loss that internally applies softmax to turn these numbers into probabilities.
+
 
 ### GloVe + LSTM
 We also implemented a GloVe model where we try to add some notion of bi-directional context encoding.
@@ -78,6 +106,10 @@ TODO (Anton)
 - error graphs (maybe from wandb?)
 
 Key experiments & results: present and explain results, e.g. in simple accuracy tables over error graphs up to visualisations of representations and/or edge cases – keep it crisp
+#### After training our models, we decided to check their accuracy and competency on a defined set of prompts. Starting at easy-to-classify review to more convoluted.
+##### BERT implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens).
+##### Simple GloVe did have a few correct predictions but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. So overall performance was pretty bad.
+##### Glove + LSTM performed much better than simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation. Even besting BERT in long review classification.
 
 ## Discussion
 TODO (Anton)
