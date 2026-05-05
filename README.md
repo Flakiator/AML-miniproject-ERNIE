@@ -91,8 +91,8 @@ The GloVe + LSTM `glove.ipynb` can be run in colab, where we recommend using T4 
 The first cell should look as follows during first run, as to download the GloVe vectors (uncomment 2nd and 3rd lines):
 ```py
 # Downloads (run once)
-# !wget -q http://nlp.stanford.edu/data/glove.6B.zip
-# !unzip -q glove.6B.zip -d glove
+!wget -q http://nlp.stanford.edu/data/glove.6B.zip
+!unzip -q glove.6B.zip -d glove
 
 # V1: Test accuracy: 0.8774 | Test loss: 0.2897
 # V2: Test accuracy: 0.8828 | Test loss: 0.2795
