@@ -34,9 +34,8 @@ We loaded the pretrained weights via BertModel rather than BertForSequenceClassi
 
 For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight decay was applied for regularization. Metrics were logged per epoch to Weights & Biases, and the best checkpoint was selected based on validation F1 score.
 
-
 ### GloVe
-TODO
+TODO (Anton)
 - architecture
 - training mechanisms
 - brief justification (for non-standard things)
@@ -73,7 +72,7 @@ The optimizer used was Adaptive Moment Estimation with a base LR of 0.001 (and u
 The loss was calculated via binary cross-entropy, since we were working with binary output classes.
 
 ## Results
-ANTON
+TODO (Anton)
 - key experiments and results
 - accuracy tables
 - error graphs (maybe from wandb?)
@@ -81,8 +80,7 @@ ANTON
 Key experiments & results: present and explain results, e.g. in simple accuracy tables over error graphs up to visualisations of representations and/or edge cases – keep it crisp
 
 ## Discussion
-ANTON
-TODO
+TODO (Anton)
 
 Discussion: summarise the most important results and lessons learned (what is good, what can be improved)
 
