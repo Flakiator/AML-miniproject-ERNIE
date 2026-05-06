@@ -36,10 +36,7 @@ We loaded the pretrained weights via BertModel rather than BertForSequenceClassi
 For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight decay was applied for regularization. Metrics were logged per epoch to Weights & Biases, and the best checkpoint was selected based on validation F1 score.
 
 ### GloVe
-We used pretrained GloVe (6B, 300d) embeddings as a baseline to compare against BERT. For each review, we tokenized the text by lowercasing and whitespace splitting, looked up each token's 300-dimensional GloVe vector, and averaged them into a single fixed-size sentence representation via mean pooling. This vector was then passed into a small feedforward classifier (300 → 256 → 2) trained with AdamW.
-#### The key limitation of this approach is that GloVe embeddings are static — every word always maps to the same vector regardless of context. This means the model cannot distinguish sentiment that depends on context, and word order is lost entirely through mean pooling
-#### GloVe + small MLP classifier 
-In our project we used pre-trained word vectors trained with GloVe (6B tokens, 400K vocab, 300d).
+We used pretrained GloVe (6B, 300d) embeddings as a baseline to compare against BERT using mean pooling over token vectors to produce a fixed 300-dimensional sentence representation fed into a small MLP classifier.
 
 Our training process can be separated into two distinct stages:
 1. Stage 1 is creation of **embeddings** of IMDB dataset. 
@@ -50,7 +47,8 @@ Our training process can be separated into two distinct stages:
    2. Then we use RELU activation function.
    3. Apply dropout regularization.
    4. Finally, a final Linear layer to get last 2 dimensions.
-   5. We get two raw logits and apply CrossEnthropy loss that internally applies softmax to turn these numbers into probabilities.
+   5. We get two raw logits and apply CrossEntropy loss that internally applies softmax to turn these numbers into probabilities.
+#### The key limitation of this approach is that GloVe embeddings are static — every word always maps to the same vector regardless of context. This means the model cannot distinguish sentiment that depends on context, and word order is lost entirely through mean pooling
 
 
 ### GloVe + LSTM
