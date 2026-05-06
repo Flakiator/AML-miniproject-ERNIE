@@ -90,7 +90,7 @@ Accuracy: 94%
 ##### **Simple GloVe** did have a few correct predictions, but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. However since GloVe can see the full reviews (even for those longer than 512 tokens) it could correctly classify it where BERT failed.
 Accuracy: 84%
 ##### **Glove + LSTM** performed much better than Simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation.
-Accuracy: ???
+Accuracy: 89%
 
 ## Discussion
 Our experiments showed that full fine-tuning and frozen backbone achieved comparable performance on IMDb, suggesting BERT's pretrained representations already capture sentiment well without significant adaptation. The GloVe baseline achieved 84% accuracy vs BERT's 94%, confirming that contextual embeddings provide a meaningful advantage. However the gap was smaller than expected, likely because IMDb sentiment is relatively straightforward. BERT's 512 token limit caused truncation of longer reviews, potentially discarding concluding sentences which often carry strong sentiment signals. This could be solved by implementing different truncation strategies (taking some of the first tokens in a review and some of the last tokens) however we did not get to test this.
