@@ -84,7 +84,7 @@ The optimizer used was Adaptive Moment Estimation with a base LR of 0.001 (and u
 The loss was calculated via binary cross-entropy, since we were working with binary output classes.
 
 ## Results
-#### After training our models, we decided to check their accuracy and competency on a defined set of prompts. Starting at easy-to-classify review to more convoluted.
+#### After training our models, we decided to check their accuracy and competency on a defined set of prompts which can be found in the test_prompts.txt file. Starting at easy-to-classify review to more convoluted.
 ##### **BERT** implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens).
 ##### **Simple GloVe** did have a few correct predictions, but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. So overall performance was pretty bad.
 ##### **Glove + LSTM** performed much better than Simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation. Even besting BERT in long review classification.
