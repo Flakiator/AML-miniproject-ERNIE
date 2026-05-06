@@ -107,9 +107,11 @@ Finally, we learned different methodologies and tactics for improving models and
 
 ## How to run the models and other resources
 ### BERT (bert.ipynb)
-The colab file (BERT.ipynb) is amazingly setup so it's easy to follow instructions and run the training model. 
+The colab file (BERT.ipynb) is set up in a way that you can skip certain blocks depending, like loading and old model if you are running for the first time. 
+It's easy to follow instructions and run the training of a model.
+You can also skip printing embeddings, tokenization and data-collection.
 There are options to load old model, freeze weights and further customization as selecting custom hyperparameters and logging options.
-With frozen weights it trains very fast and achieves test accuracy of 76%.
+With frozen weights we achieve test accuracy of 76%.
 
 ### GloVe + LSTM (glove.ipynb)
 The GloVe + LSTM `glove.ipynb` can be run in colab, where we recommend using T4 runtime. It scores a test accuracy of around 88%.
