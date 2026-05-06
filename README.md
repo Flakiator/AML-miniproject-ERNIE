@@ -5,14 +5,16 @@ The students involved are:
 - Niklas Zeeberg Hessner Christensen (nizc)
 - Anton Yakovenko (anya)
 
+## Central problem
 The project focuses on the analysis of different ML models as a means to sentiment analysis of movie reviews on the IMDB dataset.
 It more notably investigates the use of BERT and GloVe variants, and how each can capture context in natural languages, within the scope of movie reviews.
 
 ## Data
 The data is the IMDB movie review dataset (in english).
-It contains a test set and a validation set, each with 25.000 reviews.
+It contains a train and a test set, each with 25.000 reviews.
 Each set is evenly split 50/50 between positive and negative reviews.
-It contains a large plethora of tokens, both with HTML tags, made up words, and spelling mistakes.
+We split 10% of the train data into a validation set.
+It contains a large plethora of tokens, both with HTML tags, made up words, spelling mistakes and even duplicates.
 
 ## Method chosen
 We initially wanted to use the BERT model, as it provided great bi-directional context encoding, which we felt was relevent to capture the sentiment
@@ -35,10 +37,20 @@ We loaded the pretrained weights via BertModel rather than BertForSequenceClassi
 For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight decay was applied for regularization. Metrics were logged per epoch to Weights & Biases, and the best checkpoint was selected based on validation F1 score.
 
 ### GloVe
-TODO (Anton)
-- architecture
-- training mechanisms
-- brief justification (for non-standard things)
+We used pretrained GloVe (6B, 300d) embeddings as a baseline to compare against BERT using mean pooling over token vectors to produce a fixed 300-dimensional sentence representation fed into a small MLP classifier.
+
+Our training process can be separated into two distinct stages:
+1. Stage 1 is creation of **embeddings** of IMDB dataset. 
+   1. We tokenize raw text.
+   2. Mean-pool using GloVe vectors that produce 300d vector for a review.
+2. Stage 2 is our MLP Classifier.
+   1. We pass 300d vector through first Linear layer and reduce dimensions to 256.
+   2. Then we use RELU activation function.
+   3. Apply dropout regularization.
+   4. Finally, a final Linear layer to get last 2 dimensions.
+   5. We get two raw logits and apply CrossEntropy loss that internally applies softmax to turn these numbers into probabilities.
+#### The key limitation of this approach is that GloVe embeddings are static — every word always maps to the same vector regardless of context. This means the model cannot distinguish sentiment that depends on context, and word order is lost entirely through mean pooling
+
 
 ### GloVe + LSTM
 We also implemented a GloVe model where we try to add some notion of bi-directional context encoding.
@@ -72,24 +84,31 @@ The optimizer used was Adaptive Moment Estimation with a base LR of 0.001 (and u
 The loss was calculated via binary cross-entropy, since we were working with binary output classes.
 
 ## Results
-TODO (Anton)
-- key experiments and results
-- accuracy tables
-- error graphs (maybe from wandb?)
-
-Key experiments & results: present and explain results, e.g. in simple accuracy tables over error graphs up to visualisations of representations and/or edge cases – keep it crisp
+#### After training our models, we decided to check their accuracy and competency on a defined set of prompts which can be found in the test_prompts.txt file. Starting at easy-to-classify review to more convoluted.
+##### **BERT** implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens). Everything past this context length gets truncated/thrown away. 
+Accuracy: 94%
+##### **Simple GloVe** did have a few correct predictions, but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. However since GloVe can see the full reviews (even for those longer than 512 tokens) it could correctly classify it where BERT failed.
+Accuracy: 84%
+##### **Glove + LSTM** performed much better than Simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation.
+Accuracy: 89%
 
 ## Discussion
-TODO (Anton)
-
-Discussion: summarise the most important results and lessons learned (what is good, what can be improved)
+Our experiments showed that full fine-tuning and frozen backbone achieved comparable performance on IMDb, suggesting BERT's pretrained representations already capture sentiment well without significant adaptation. The GloVe baseline achieved 84% accuracy vs BERT's 94%, confirming that contextual embeddings provide a meaningful advantage. However the gap was smaller than expected, likely because IMDb sentiment is relatively straightforward. BERT's 512 token limit caused truncation of longer reviews, potentially discarding concluding sentences which often carry strong sentiment signals. This could be solved by implementing different truncation strategies (taking some of the first tokens in a review and some of the last tokens) however we did not get to test this.
 
 ## How to run the models and other resources
 ### BERT (bert.ipynb)
-TODO (Anton)
+The colab file (BERT.ipynb) is set up in a way that you can skip certain blocks depending, like loading and old model if you are running for the first time. 
+It's easy to follow instructions and run the training of a model.
+You can also skip printing embeddings, tokenization and data-collection.
+There are options to load old model, freeze weights and further customization as selecting custom hyperparameters and logging options.
 
 ### GloVe + LSTM (glove.ipynb)
 The GloVe + LSTM `glove.ipynb` can be run in colab, where we recommend using T4 runtime. It scores a test accuracy of around 88%.
+
+### Simple Glove (Simple_GloVe.ipynb / Simple_GloVe.py)
+.ipynb version can be run in colab like Glove + LSTM version.
+.py version can be run locally if your machine is faster than colab.
+We used the glove.6B.zip (300d) from: https://nlp.stanford.edu/projects/glove/
 
 The first cell should look as follows during first run, as to download the GloVe vectors (uncomment 2nd and 3rd lines):
 ```py
