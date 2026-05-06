@@ -10,9 +10,10 @@ It more notably investigates the use of BERT and GloVe variants, and how each ca
 
 ## Data
 The data is the IMDB movie review dataset (in english).
-It contains a test set and a validation set, each with 25.000 reviews.
+It contains a train and a test set, each with 25.000 reviews.
 Each set is evenly split 50/50 between positive and negative reviews.
-It contains a large plethora of tokens, both with HTML tags, made up words, and spelling mistakes.
+We split 10% of the train data into a validation set.
+It contains a large plethora of tokens, both with HTML tags, made up words, spelling mistakes and even duplicates.
 
 ## Method chosen
 We initially wanted to use the BERT model, as it provided great bi-directional context encoding, which we felt was relevent to capture the sentiment
@@ -85,14 +86,15 @@ The loss was calculated via binary cross-entropy, since we were working with bin
 
 ## Results
 #### After training our models, we decided to check their accuracy and competency on a defined set of prompts which can be found in the test_prompts.txt file. Starting at easy-to-classify review to more convoluted.
-##### **BERT** implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens).
-##### **Simple GloVe** did have a few correct predictions, but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. So overall performance was pretty bad.
-##### **Glove + LSTM** performed much better than Simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation. Even besting BERT in long review classification.
+##### **BERT** implementation correctly predicted most reviews with varying confidence, but it failed on really long reviews because of limited context length (512 tokens). Everything past this context length gets truncated/thrown away. 
+Accuracy: 94%
+##### **Simple GloVe** did have a few correct predictions, but it completely failed on more ambiguous reviews, here the lack of contextual awareness shines the most. For example words that describe positivity/negativity just add up for the final prediction. If review had 2 negative words and 1 positive, review would become negative. However since GloVe can see the full reviews (even for those longer than 512 tokens) it could correctly classify it where BERT failed.
+Accuracy: 84%
+##### **Glove + LSTM** performed much better than Simple GloVe because of added context encodings and additional hidden layers to extract additional features. This version of GloVe implementation showed much better results in comparison to Simple GloVe and very close to BERT implementation.
+Accuracy: ???
 
 ## Discussion
-We learned that understanding the data and dataset is really important. This step is of utmost importance as it can hinder any further development. By thoroughly choosing and refining your data you will achieve much more accuracy of trained model and significantly reduce time trying to optimize it.
-Furthermore, we investigated evolution of NLP approaches and the motivation behind constant improvement by learning about shortcomings and negatives of different model architectures.
-Finally, we learned different methodologies and tactics for improving models and that it is possible to achieve high scores and performance using already pre-trained models.
+Our experiments showed that full fine-tuning and frozen backbone achieved comparable performance on IMDb, suggesting BERT's pretrained representations already capture sentiment well without significant adaptation. The GloVe baseline achieved 84% accuracy vs BERT's 94%, confirming that contextual embeddings provide a meaningful advantage. However the gap was smaller than expected, likely because IMDb sentiment is relatively straightforward. BERT's 512 token limit caused truncation of longer reviews, potentially discarding concluding sentences which often carry strong sentiment signals. This could be solved by implementing different truncation strategies (taking some of the first tokens in a review and some of the last tokens) however we did not get to test this. We also learned that data cleaning is important seeing improvements of ~+2% after filtering out html tags and duplicate reviews.
 
 ## How to run the models and other resources
 ### BERT (bert.ipynb)
