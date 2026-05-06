@@ -37,17 +37,6 @@ For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight
 ### GloVe
 We used pretrained GloVe (6B, 300d) embeddings as a baseline to compare against BERT. For each review, we tokenized the text by lowercasing and whitespace splitting, looked up each token's 300-dimensional GloVe vector, and averaged them into a single fixed-size sentence representation via mean pooling. This vector was then passed into a small feedforward classifier (300 → 256 → 2) trained with AdamW.
 #### The key limitation of this approach is that GloVe embeddings are static — every word always maps to the same vector regardless of context. This means the model cannot distinguish sentiment that depends on context, and word order is lost entirely through mean pooling
-
-#### Initial training process of GloVe model vectors
-1. Build the Co-occurrence Matrix. It captures global statistics of the entire corpus.
-2. Initialize Embedding.
-   1. Randomly initialize all learnable parameters (main word embeddings, context word embeddings, word biases, context biases)
-3. Define the Weighting Function.
-4. The Training Loop. Compute predictions, error against the log target, update parameters using gradient descent. (GloVe uses AdaGrad optimizer).
-5. Repeat over Epochs
-6. Combine the Two Embeddings.
-After training, the final word vector is calculated.
-
 #### GloVe + small MLP classifier 
 In our project we used pre-trained word vectors trained with GloVe (6B tokens, 400K vocab, 300d).
 
@@ -111,7 +100,6 @@ The colab file (BERT.ipynb) is set up in a way that you can skip certain blocks 
 It's easy to follow instructions and run the training of a model.
 You can also skip printing embeddings, tokenization and data-collection.
 There are options to load old model, freeze weights and further customization as selecting custom hyperparameters and logging options.
-With frozen weights we achieve test accuracy of 76%.
 
 ### GloVe + LSTM (glove.ipynb)
 The GloVe + LSTM `glove.ipynb` can be run in colab, where we recommend using T4 runtime. It scores a test accuracy of around 88%.

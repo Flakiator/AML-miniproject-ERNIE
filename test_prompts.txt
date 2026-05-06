@@ -1,0 +1,34 @@
+The movie was not bad
+BERT - Positive 83%
+GloVe - Negative 100%
+GloVe + LSTM - Negative 90%
+
+I didn't hate it
+BERT - Positive 71%
+GloVe - Negative 51%
+GloVe + LSTM - Negative 52%
+
+It could have been better
+BERT - Negative 54%
+GloVe - Positive 70%
+GloVe + LSTM - Negative 55%
+
+It was not not bad
+BERT - Positive 73%
+GloVe - Negative 100%
+GloVe + LSTM - Negative 65%
+
+It done be the bestest
+BERT - Positive 54%
+GloVe - Positive 98%
+GloVe + LSTM - Positive 63%
+
+T’wos nat gud
+BERT - Negative 78%
+GloVe - Positive 92%
+GloVe + LSTM - Positive 71%
+
+<Very long review with negative sentiment at the end>
+BERT - Positive 98%
+GloVe - Negative 82%
+GloVe + LSTM - Negative 90%
