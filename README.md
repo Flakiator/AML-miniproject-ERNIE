@@ -35,13 +35,8 @@ We loaded the pretrained weights via BertModel rather than BertForSequenceClassi
 For training we used the HuggingFace Trainer with AdamW as the optimizer. Weight decay was applied for regularization. Metrics were logged per epoch to Weights & Biases, and the best checkpoint was selected based on validation F1 score.
 
 ### GloVe
-GloVe is an unsupervised learning algorithm for obtaining vector representations for words. This is achieved by mapping words into a meaningful space where the distance between words is related to semantic similarity.
-GloVe is not a neural network in the traditional sense — it has no hidden layers, no activations. It's a shallow, direct embedding model.
-GloVe is essentially a log-bilinear model with a weighted least-squares objective. (Log-Bilinear means measuring of similarity between two vectors in the same space by taking a dot-product of vectors)
-The training objective of GloVe is to learn word vectors such that their dot product equals the logarithm of the words' probability of co-occurrence.
-
-#### The main drawback of GloVe is that it lacks contextual embeddings. 
-#### Each word gets one single fixed vector, regardless of context. GloVe cannot disambiguate meaning based on surrounding context. (bank of a river is the same as bank where people store money)
+We used pretrained GloVe (6B, 300d) embeddings as a baseline to compare against BERT. For each review, we tokenized the text by lowercasing and whitespace splitting, looked up each token's 300-dimensional GloVe vector, and averaged them into a single fixed-size sentence representation via mean pooling. This vector was then passed into a small feedforward classifier (300 → 256 → 2) trained with AdamW.
+#### The key limitation of this approach is that GloVe embeddings are static — every word always maps to the same vector regardless of context. This means the model cannot distinguish sentiment that depends on context, and word order is lost entirely through mean pooling
 
 #### Initial training process of GloVe model vectors
 1. Build the Co-occurrence Matrix. It captures global statistics of the entire corpus.
