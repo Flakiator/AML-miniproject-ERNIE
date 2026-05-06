@@ -5,6 +5,7 @@ The students involved are:
 - Niklas Zeeberg Hessner Christensen (nizc)
 - Anton Yakovenko (anya)
 
+## Central problem
 The project focuses on the analysis of different ML models as a means to sentiment analysis of movie reviews on the IMDB dataset.
 It more notably investigates the use of BERT and GloVe variants, and how each can capture context in natural languages, within the scope of movie reviews.
 
